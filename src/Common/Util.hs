@@ -181,7 +181,7 @@ revFreqs = IM.fromListWith (<>)
 
 -- | Build a list of /descending/ frequencies.  Ties are sorted.
 freqList :: (Foldable f, Ord a) => f a -> [(Int, a)]
-freqList = concatMap (traverse toList) . IM.toDescList . revFreq
+freqList = concatMap (traverse toList) . IM.toDescList . revFreqs
 
 -- | Fsnds all the ways to select one element from a list
 -- Returns the selected value and list of the other values

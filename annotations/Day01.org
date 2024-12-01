@@ -1,0 +1,44 @@
+This is a problem that is well suited to a functional language like Haskell. Functional progamming languages are generally really good working with lists and this problem is no exception.
+
+The input can be seen as a pair of lists. For parsing, I prefer to use the parser combinator library [[https://hackage.haskell.org/package/megaparsec][Megaparsec]], even if it's overkill for these early days. ~pLines :: Parser a -> String -> [a]~ and ~pNumber :: Num a => Parser a~ are convenience functions I've written myself. The former runs a parser on every newline separated chunk and the latter parses integers with an optional leading plus or minus sign.
+
+The only slightly tricky thing to note is the usage of ~unzip~. ~pLines pPair~ returns ~[(Int, Int)]~ which isn't quite the form that I want to work with. When writting this parser, I realized that I would need a way to essentially "flip" this data structure inside out, and I couldn't recall what it was called. In cases like this, I generally use a tool called [[https:hoogle.haskell.org][Hoogle]], which search through all packages on Hackage either by type signature or by identifier name. In this case, a query of "[(Int, Int)] -> ([Int],[Int])" found the function I was looking for.
+
+#+begin_src haskell
+pInput :: String -> ([Int], [Int])
+pInput = unzip . pLines pPair
+  where
+    pPair = do
+      l <- pNumber <* space
+      r <- pNumber
+      pure (l, r)
+#+end_src
+
+In future write-ups, I won't spend as much time explaining my parsers, as it usually won't be very interesting. If anything clever or unique happens during parsing, I'll be sure to mention it. For the most part, these parsers will just be boilerplate that every solution needs.
+
+The main bulk of the logic is implemented by the two functions aptly named ~part1~ and ~part2~. For part 1, my code is a fairly direct implementation of the written description given.
+
+#+begin_src haskell
+part1 :: String -> Int
+part1 i = sum $ zipWith dist (sort ls) (sort rs)
+  where
+    dist l r = abs (l - r)
+    (ls, rs) = pInput i
+#+end_src
+
+Here, the function ~zipWith~ is being used to run the ~dist~ function on corresponding pairs from each list. Because the lists are sorted first, ~zipWith~ will first compute the distance between the smallest numbers, then the second smallest and so on.
+
+Part 2 is a little trickier because Haskell doesn't have an off the shelf library function to get compute a frequency table, but since that comes up all the time in Advent of Code puzzles, I have one in ~Common.Util~. Technically I'm using ~intFreqs :: [Int] -> IntMap Int~ which is optimized to work with ints, however, with a dataset this small the difference doesn't really matter.
+
+#+begin_src haskell
+part2 :: String -> Int
+part2 i = sum $ map (score (intFreqs rs)) ls
+  where
+    score rFreqs l = l * IM.findWithDefault 0 l rFreqs
+    (ls, rs) = pInput i
+
+intFreqs :: [Int]-> IntMap Int
+intFreqs = foldl' (\m val -> IM.insertWith (+) val 1 m) IM.empty
+#+end_src
+
+~intFreqs~ stars with an empty map (all zeros) and every time it sees a new element, it adds one to the respective count. ~findWithDefault~ takes care of all the cases where a number appears only in the left list and not in the right list by assigning it a value of 0.
