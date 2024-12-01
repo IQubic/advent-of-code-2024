@@ -23,7 +23,7 @@ pInput :: String -> ([Int], [Int])
 pInput = unzip . pLines pPair
   where
     pPair = do
-      l <- pNumber <* space
+      l <- pNumber <* hspace
       r <- pNumber
       pure (l, r)
 
