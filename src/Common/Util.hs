@@ -173,11 +173,11 @@ intFreqs :: Foldable t => t Int-> IntMap Int
 intFreqs = foldl' (\m val -> IM.insertWith (+) val 1 m) IM.empty
 
 -- | Build a reverse frequency map
-revFreq :: (Foldable f, Ord a) => f a -> IntMap (NESet a)
-revFreq = IM.fromListWith (<>)
-        . map (swap . first NES.singleton)
-        . M.toList
-        . freqs
+revFreqs :: (Foldable f, Ord a) => f a -> IntMap (NESet a)
+revFreqs = IM.fromListWith (<>)
+         . map (swap . first NES.singleton)
+         . M.toList
+         . freqs
 
 -- | Build a list of /descending/ frequencies.  Ties are sorted.
 freqList :: (Foldable f, Ord a) => f a -> [(Int, a)]
