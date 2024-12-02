@@ -185,6 +185,7 @@ freqList = concatMap (traverse toList) . IM.toDescList . revFreqs
 
 -- | Fsnds all the ways to select one element from a list
 -- Returns the selected value and list of the other values
+-- NOTE: The list of other values isn't in the same order as the input list
 select :: [a] -> [(a,[a])]
 select = go []
   where
