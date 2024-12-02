@@ -32,4 +32,3 @@ pInput = pLines (pNumber `sepEndBy1` char ' ')
 
 solve :: Show a => (String -> a) -> IO (Either AoCError a)
 solve = runSolutionOnInput 2
-

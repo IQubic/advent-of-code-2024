@@ -1,0 +1,40 @@
+This problem is very good for Haskell's stream processing features. The main function used for this problem is a something that will detect if a sequence is safe according to the given rules.
+
+#+begin_src haskell
+safe :: [Int] -> Bool
+safe xs = (allIncreasing || allDecreasing) && goodSeparations
+  where
+    ps = pairs xs
+    pairs xs = zip xs (tail xs)
+    allIncreasing = all (uncurry (<)) ps
+    allDecreasing = all (uncurry (>)) ps
+    goodSeparations = all (\(x, y) -> abs (x - y) `elem` [1..3]) ps
+#+end_src
+
+~pairs~ is a very useful function for solving Advent of Code problems. Essentially it pairs the Nth element with the one after it. It's a sliding window of length 2. The annoying part of this code is that in the worst case it has to do three full passes throught the list. There's probably a way of doing this in O(N) time, but I'm too tired to think of it late at night.
+
+Part 1 is a standard "count how many lines of the input match a given predicate" type problem.
+
+#+begin_src haskell
+part1 :: String -> Int
+part1 = countIf safe . pInput
+#+end_src
+
+~countIf~ is essentially just ~\p xs -> filter (map p xs)~ except that it uses the Lens library to do this in one pass only.
+
+Part 2 much the same, only now we also need to account for cases where removing any single element from a list makes it safe.
+
+#+begin_src haskell
+part2 :: String -> Int
+part2 = countIf (\xs -> fixable xs || safe xs) . pInput
+  where
+    fixable xs = any safe (removeOne xs)
+    -- This is a modified version of `select` from Common.Util
+    -- This version keeps the elements of the list in the same order
+    removeOne = go []
+      where
+        go _  [] = []
+        go xs (y:ys) = (xs ++ ys) : go (xs ++ [y]) ys
+#+end_src
+
+~removeOne~ works by maintaining two lists, a list of elements before the removed one (xs), and list of elements after (ys). The function loops through the given list, moving elements from the the after list to the before list one at a time, while also constructing the required outputs.
