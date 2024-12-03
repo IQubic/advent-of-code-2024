@@ -25,15 +25,21 @@ coerceParseResult = either (error . errorBundlePretty) id
 
 -- | Parser for entire input. Requires user to consume all whitespace.
 -- Calls @error@ on a parse error.
-pAll :: Parser a -> String -> a
-pAll p input = coerceParseResult
-             $ runParser (p <* eof) "" input
+pAllInput :: Parser a -> String -> a
+pAllInput p input = coerceParseResult
+                  $ runParser (p <* eof) "" input
+
+-- | Parser for entire input. Requires user to consume all whitespace.
+-- Calls @error@ on a parse error.
+pSomeInput :: Parser a -> String -> a
+pSomeInput p input = coerceParseResult
+                   $ runParser p "" input
 
 -- | Parser for all lines. Runs a given parser on each line.
 -- Requires that the user DOES NOT consume newlines.
 -- Calls @error@ on a parse error.
 pLines :: Parser a -> String -> [a]
-pLines p = pAll (p `endBy` eol)
+pLines p = pAllInput (p `endBy` eol)
 
 -- | Parser for a single line.
 -- Requires that the user DOES NOT consume newlines.
