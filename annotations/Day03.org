@@ -1,0 +1,49 @@
+Today's problem is primarily a parsing challenge. As always, I prefer to do my parsing with [[https:://hackage.haskell.org/package/megaparsec][Megaparsec]].
+
+#+begin_src haskell
+data Instr = Mul Int Int | Do | Dont deriving Show
+
+pInput :: String -> [Instr]
+pInput =  pSomeInput (many pOne)
+  where
+    -- Skip past all the junk until you either find another operation
+   --  or encounter the end of the file
+    pOne :: Parser Instr
+    pOne = choice $ map try [ pMul
+                            , string "do()" $> Do
+                            , string "don't()" $> Dont
+                            , anySingle *> pOne
+                            ]
+    pMul = do
+      x <- string "mul(" *> pNumber
+      y <- char ',' *> pNumber <* char ')'
+      pure $ Mul x y
+
+#+end_src
+
+The main tricky bit here is skipping past all the random characters that don't form valid operations. This is done with the fourth option in the list of choices, which skips a single character and then reruns the operation parser when none of the other options find a match. The use of try allows for backtracking in cases where a partial match is found and needs to be discarded.
+
+I did have to modify my parser library to allow for cases when not all of the input can be meaningfully consumed. Once we start chomping through the junk characters, we always expect to find another valid instruction, but at the end of the input file, that might not be true.
+
+Once we have a list of operations, part 1 can be simply implemented by only looking at the ~Mul~ operations and disregarding everything else.
+
+#+begin_src haskell
+-- The pattern match in the list comprehsion throws out all dos and donts
+part1 :: String -> Int
+part1 i = sum [ x * y | Mul x y <- pInput i]
+#+end_src
+
+Part 2 is a bit harder, because we have to keep track of a state as we run through the operations. Using ~foldl'~ we can track this state and compute the final answer at the same time.
+
+#+begin_src haskell
+-- Examine each operation one by one, updating the state as needed
+part2 :: String -> Int
+part2 = snd . foldl' go (True, 0) . pInput
+  where
+    go (enabled, acc) = \case
+      Do -> (True, acc)
+      Dont -> (False, acc)
+      Mul x y
+        | enabled -> (True, acc + x * y)
+        | otherwise -> (False, acc)
+#+end_src

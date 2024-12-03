@@ -27,11 +27,11 @@ pInput =  pSomeInput (many pOne)
     -- Skip past all the junk until you either find another operation
    --  or encounter the end of the file
     pOne :: Parser Instr
-    pOne = choice [ try pMul
-                  , try (string "do()" $> Do)
-                  , try (string "don't()" $> Dont)
-                  ]
-           <|> try (anySingle *> pOne)
+    pOne = choice $ map try [ pMul
+                            , string "do()" $> Do
+                            , string "don't()" $> Dont
+                            , anySingle *> pOne
+                            ]
     pMul = do
       x <- string "mul(" *> pNumber
       y <- char ',' *> pNumber <* char ')'
