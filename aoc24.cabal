@@ -21,6 +21,7 @@ library
                        , advent-of-code-api
                        , advent-of-code-ocr
                        , megaparsec
+                       , regex-posix
                        , text
                        , lens
                        , generic-lens

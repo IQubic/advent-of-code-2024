@@ -23,7 +23,7 @@ type ParserResult = Either (ParseErrorBundle String Void)
 coerceParseResult :: ParserResult a -> a
 coerceParseResult = either (error . errorBundlePretty) id
 
--- | Parser for entire input. Requires user to consume all whitespace
+-- | Parser for entire input. Requires user to consume all whitespace.
 -- Calls @error@ on a parse error.
 pAll :: Parser a -> String -> a
 pAll p input = coerceParseResult
