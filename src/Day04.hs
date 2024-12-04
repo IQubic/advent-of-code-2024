@@ -25,6 +25,7 @@ part2 i = length $ do
         guard $ Just "AMMSS" == getWord grid xs      -- Check if this is a solution
   where
     -- The five points that make up an x
+    -- liftA2 applies the V2 constructor pairwise
     xshape :: [Point]
     xshape = 0 : liftA2 V2 [-1,1] [-1,1]
     grid = pInput i
@@ -32,7 +33,7 @@ part2 i = length $ do
 -- Find the letters at the given point
 -- Fail if not all in the grid given
 getWord :: Map Point Char -> [Point] -> Maybe String
-getWord grid = traverse (`M.lookup` grid)
+getWord grid = traverse (grid M.!?)
 
 pInput :: String -> Map Point Char
 pInput = asciiGridMap Just
