@@ -1,0 +1,51 @@
+This is the first of the 2D grid problems. These types of problems are so commonplace in Advent of Code that I've created a little helper library. It works by using the machinery provided by the [[https://hackage.haskell.org/package/linear-1.23][Linear]] library. Specifically, I use the ~V2~ datatype from ~Linear.V2~ to represent lattice points on a 2D grid. ~V2~ has a useful ~Num~ instance and a few other convenience functions that I often find helpful. ~Common.Grid~ contains a few different ways to representation a 2D grid. For most problems, I just use ~Map (V2 Int) a~ where I only store the data at relevant points. Here, every point has useful data, so I store all points.
+
+#+begin_src haskell
+-- asciiGridMap :: (Char -> Maybe a) -> String -> Map Point Char
+pInput :: String -> Map Point Char
+pInput = asciiGridMap Just
+#+end_src
+
+~asciiGridMap~ uses fancy Lens magic to iterate over the lines of the given string, pairing each position with the correct data, but only when the given function returns a ~Just~ value.
+
+The main helper function for today's problem is a way to take a grid and a list of points, and find the letters at those points, provided all those points are in the given grid.
+#+begin_src haskell
+-- Find the letters at the given points
+-- Fail if not all in the grid given
+getWord :: Map Point Char -> [Point] -> Maybe String
+getWord grid = traverse (grid M.!?)
+#+end_src
+
+Armed with this function, we can construct a solution to part 1 like so:
+#+begin_src haskell
+-- For each possible starting point, check all eight directions
+part1 :: String -> Int
+part1 i = length $ do
+        p <- M.keys grid                       -- Current word start
+        d <- fullNeighbors 0                   -- Direction to search in
+        let xs = take 4 $ iterate (+d) p       -- Points to examine
+        guard $ Just "XMAS" == getWord grid xs -- Check if this is a solution
+  where
+    grid = pInput i
+#+end_src
+
+Using do notation over lists (length excepts a list as input) like this essentially functions like a nested for loop, iterating over the elements of each list. The ~guard~ at the end checks if the four letters we've found form the word "XMAS".
+
+Part 2 is much the same, except instead of searching in a single line for the requisite letters, we now have to search in a little X shape.
+#+begin_src haskell
+-- For each possible center of an x, check all four rotations
+part2 :: String -> Int
+part2 i = length $ do
+        p <- M.keys grid                             -- Current x center
+        ds <- take 4 $ iterate (map perp) xshape     -- Current orientation to check
+        let xs = map (p+) ds                         -- Points to examine
+        guard $ Just "AMMSS" == getWord grid xs      -- Check if this is a solution
+  where
+    -- The five points that make up an x
+    -- liftA2 applies the V2 constructor pairwise
+    xshape :: [Point]
+    xshape = 0 : liftA2 V2 [-1,1] [-1,1]
+    grid = pInput i
+#+end_src
+
+~xshape~ uses ~liftA2~ to construct the list of points that form an X. It's essentially the same thing as doing ~xshape = 0 : [ V2 x y | x <- [-1,1], y <- [-1,1] ]~. In fact, when working with lists, there's an Applicative way to write something and a List Comprehension way to write it. Here, I find the ~liftA2~ version easier to understand. Using ~perp~ I can easily get all four rotations of the X shape. ~perp~ rotates a V2 90 degrees counter-clockwise around the origin. Since ~ds~ is a list of offsets from a given center point, this works for us.

@@ -20,17 +20,17 @@ part1 i = length $ do
 part2 :: String -> Int
 part2 i = length $ do
         p <- M.keys grid                             -- Current x center
-        ds <- take 4 $ iterate (map perp) xshape     -- Create the 4 x shapes needed
+        ds <- take 4 $ iterate (map perp) xshape     -- Current orientation to check
         let xs = map (p+) ds                         -- Points to examine
         guard $ Just "AMMSS" == getWord grid xs      -- Check if this is a solution
   where
     -- The five points that make up an x
-    -- liftA2 applies the V2 constructor pairwise
+    -- liftA2 applies the V2 constructor in all 4 ways
     xshape :: [Point]
     xshape = 0 : liftA2 V2 [-1,1] [-1,1]
     grid = pInput i
 
--- Find the letters at the given point
+-- Find the letters at the given points
 -- Fail if not all in the grid given
 getWord :: Map Point Char -> [Point] -> Maybe String
 getWord grid = traverse (grid M.!?)
