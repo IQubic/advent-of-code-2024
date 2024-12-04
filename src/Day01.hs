@@ -5,7 +5,6 @@ import Common.Parser
 import Common.Util
 import Data.List (sort)
 import Data.IntMap qualified as IM
-import Data.Maybe (fromMaybe)
 
 part1 :: String -> Int
 part1 i = sum $ zipWith dist (sort ls) (sort rs)
